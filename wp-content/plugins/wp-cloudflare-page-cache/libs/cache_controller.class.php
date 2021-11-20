@@ -7,7 +7,7 @@ class SWCFPC_Cache_Controller
 
     private $main_instance = null;
 
-    private $objects;
+    private $objects = false;
     
     private $skip_cache = false;
     private $purge_all_already_done = false;
@@ -168,7 +168,7 @@ class SWCFPC_Cache_Controller
             add_action('wc_after_products_ending_sales', array($this, 'woocommerce_purge_scheduled_sales'), PHP_INT_MAX);
         }
 
-        // Swift Performance Lite actions
+        // Swift Performance (Lite/Pro) actions
         if( $this->main_instance->get_single_config('cf_spl_purge_on_flush_all', 0) > 0 ) {
             add_action('swift_performance_after_clear_all_cache', array($this, 'spl_purge_all'), PHP_INT_MAX);
             add_action('swift_performance_after_clear_expired_cache', array($this, 'spl_purge_all'), PHP_INT_MAX);
@@ -273,6 +273,20 @@ class SWCFPC_Cache_Controller
 
         // Disable page caching in WP Rocket
         if( $this->is_cache_enabled() ) {
+            // Prevent WP Rocket from writing to the advanced-cache.php file
+            add_filter( 'rocket_generate_advanced_cache_file', '__return_false', PHP_INT_MAX );
+
+            // Disable WP Rocket mandatory cookies
+            add_filter( 'rocket_cache_mandatory_cookies', '__return_empty_array', PHP_INT_MAX );
+
+            // Prevent WP Rocket from changing the WP_CACHE constant
+            add_filter( 'rocket_set_wp_cache_constant', '__return_false', PHP_INT_MAX );
+
+            // Prevent WP Rocket from writing to the htaccess file
+            add_filter( 'rocket_disable_htaccess', '__return_false', PHP_INT_MAX );
+
+            // Disable other WP Rocket stuffs that are not needed and handelled by this plugin
+            add_filter( 'rocket_display_input_varnish_auto_purge', '__return_false', PHP_INT_MAX );
             add_filter( 'do_rocket_generate_caching_files', '__return_false', PHP_INT_MAX );
         }
 
@@ -343,6 +357,10 @@ class SWCFPC_Cache_Controller
 
     function redirect_301_real_url() {
 
+        // For non logged-in users, only redirect when the request URL is not from a CRON job
+        if( !is_user_logged_in() && ( isset($_GET['swcfpc-preloader']) || isset($_GET['swcfpc-purge-all']) ) ) return;
+
+        // For non CRON job URLs, we will redirect
         if( !is_user_logged_in() && isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0 && strpos( $_SERVER['QUERY_STRING'], $this->get_cache_buster() ) !== false ) {
 
             // Build the full URL
@@ -372,14 +390,14 @@ class SWCFPC_Cache_Controller
             die();
 
         }
-
-
     }
 
 
     function setup_response_headers_filter( $headers ) {
 
         if( !isset($headers['X-WP-CF-Super-Cache']) ) {
+
+            $this->objects = $this->main_instance->get_objects();
 
             if( ! $this->is_cache_enabled() ) {
                 $this->objects['fallback_cache']->fallback_cache_disable();
@@ -1004,7 +1022,7 @@ class SWCFPC_Cache_Controller
 
         $this->objects = $this->main_instance->get_objects();
 
-        $listofurls = array();
+        $listofurls = apply_filters( 'swcfpc_post_related_url_init', __return_empty_array(), $postId );
         $postType = get_post_type($postId);
 
         // Post URL
@@ -1089,8 +1107,11 @@ class SWCFPC_Cache_Controller
         );
         */
 
-        // Home Page and (if used) posts page
-        array_push($listofurls, home_url('/'));
+        // Purge the home page as well if SWCFPC_HOME_PAGE_SHOWS_POSTS set to true
+        if( defined( 'SWCFPC_HOME_PAGE_SHOWS_POSTS' ) && SWCFPC_HOME_PAGE_SHOWS_POSTS === true ) {
+            array_push($listofurls, home_url('/'));
+        }
+
         $pageLink = get_permalink(get_option('page_for_posts'));
         if (is_string($pageLink) && !empty($pageLink) && get_option('show_on_front') == 'page') {
             array_push($listofurls, $pageLink);
@@ -1216,7 +1237,7 @@ class SWCFPC_Cache_Controller
             return;
 
         // Make sure we don't add the following script for AMP endpoints as they are gonna be striped out by the AMP system anyway
-        if( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) )
+        if( !is_admin() && ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) )
             return;
 
         $this->objects = $this->main_instance->get_objects();
@@ -1314,6 +1335,8 @@ class SWCFPC_Cache_Controller
             $current_timestamp = time()+120; // Cache the timestamp for 2 minutes
             $this->main_instance->set_single_config('cf_prefetch_urls_viewport_timestamp', $current_timestamp);
             $this->main_instance->update_config();
+
+            $this->objects = $this->main_instance->get_objects();
 
             if( $this->objects['logs']->get_verbosity() == SWCFPC_LOGS_HIGH_VERBOSITY ) {
                 $this->objects['logs']->add_log('cache_controller::generate_new_prefetch_urls_timestamp', "New timestamp generated: {$current_timestamp}");
@@ -1483,6 +1506,11 @@ class SWCFPC_Cache_Controller
             if( $cache_bypass === true )
                 return true;
 
+        }
+
+        // Bypass post protected by password
+        if( is_object($post) && post_password_required($post->ID) !== false ) {
+            return true;
         }
 
         // Bypass single post by metabox
@@ -2388,6 +2416,8 @@ class SWCFPC_Cache_Controller
 
     function purge_cache_queue_write($urls=array(), $purge_all=false) {
 
+        $this->objects = $this->main_instance->get_objects();
+
         while( ! $this->is_purge_cache_queue_writable() ) {
             $this->objects['logs']->add_log('cache_controller::purge_cache_queue_write', 'Queue file not writable. Sleep 1 second' );
             sleep( 1 );
@@ -2462,6 +2492,8 @@ class SWCFPC_Cache_Controller
 
         $cache_queue_path = $this->purge_cache_queue_init_directory().'cache_queue.php';
 
+        $this->objects = $this->main_instance->get_objects();
+
         // Purge queue file does not exist, so don't start purge events and unschedule running purge events
         if( ! file_exists($cache_queue_path) ) {
 
@@ -2520,6 +2552,8 @@ class SWCFPC_Cache_Controller
 
     function purge_cache_queue_job() {
 
+        $this->objects = $this->main_instance->get_objects();
+
         $this->objects['logs']->add_log('cache_controller::purge_cache_queue_job', 'I\'m the purge cache cronjob' );
 
         $cache_queue_path = $this->purge_cache_queue_init_directory() . 'cache_queue.php';
@@ -2572,7 +2606,6 @@ class SWCFPC_Cache_Controller
 
                 $this->lock_preloader();
 
-                $cf_cookie = $this->objects['cloudflare']->get_cloudflare_cookie();
                 $num_url = count($urls);
 
                 if( $this->objects['logs']->get_verbosity() == SWCFPC_LOGS_HIGH_VERBOSITY ) {
@@ -2590,7 +2623,7 @@ class SWCFPC_Cache_Controller
                 for ($i = 0; $i < $num_url && $i < $max_post_to_preload; $i++) {
 
                     if ( $this->is_external_link($urls[$i]) === false )
-                        $preloader->push_to_queue( array('cf_cookie' => $cf_cookie, 'url' => $urls[$i]) );
+                        $preloader->push_to_queue( array( 'url' => $urls[$i] ) );
 
                 }
 
@@ -2813,6 +2846,8 @@ class SWCFPC_Cache_Controller
 
         if ( class_exists( 'WpeCommon' ) ) {
 
+            $this->objects = $this->main_instance->get_objects();
+
             if( method_exists('WpeCommon', 'purge_memcached') ) {
                 WpeCommon::purge_memcached();
                 $this->objects['logs']->add_log('cache_controller::purge_wpengine_cache', 'Purge WP Engine memcached cache' );
@@ -2849,6 +2884,8 @@ class SWCFPC_Cache_Controller
 
         spinupwp_purge_site();
 
+        $this->objects = $this->main_instance->get_objects();
+
         $this->objects['logs']->add_log('cache_controller::purge_spinupwp_cache', 'Purge whole SpinupWP' );
 
     }
@@ -2861,6 +2898,8 @@ class SWCFPC_Cache_Controller
         }
 
         spinupwp_purge_url($url);
+
+        $this->objects = $this->main_instance->get_objects();
 
         $this->objects['logs']->add_log('cache_controller::purge_spinupwp_cache_single_url', "Purge SpinupWP cache for the URL {$url}" );
 
@@ -2893,8 +2932,13 @@ class SWCFPC_Cache_Controller
         global $kinsta_cache;
 
         if( $this->can_kinsta_cache_be_purged() && ! empty($kinsta_cache->kinsta_cache_purge) ) {
+
             $kinsta_cache->kinsta_cache_purge->purge_complete_caches();
+
+            $this->objects = $this->main_instance->get_objects();
+
             $this->objects['logs']->add_log('cache_controller::purge_kinsta_cache', 'Purge whole Kinsta cache' );
+
             return true;
         }
 
@@ -2973,6 +3017,8 @@ class SWCFPC_Cache_Controller
         elseif ( isset( $sg_cachepress_supercacher ) && $sg_cachepress_supercacher instanceof SG_CachePress_Supercacher )
             $sg_cachepress_supercacher->purge_cache();
 
+        $this->objects = $this->main_instance->get_objects();
+
         $this->objects['logs']->add_log('cache_controller::purge_siteground_cache', 'Purge whole Siteground cache' );
 
     }
@@ -2984,6 +3030,8 @@ class SWCFPC_Cache_Controller
             return false;
 
         wp_cache_flush();
+
+        $this->objects = $this->main_instance->get_objects();
 
         $this->objects['logs']->add_log('cache_controller::purge_object_cache', 'Purge object cache' );
 
@@ -3018,6 +3066,8 @@ class SWCFPC_Cache_Controller
             opcache_invalidate($data['full_path'] , $force=true);
         }
 
+        $this->objects = $this->main_instance->get_objects();
+
         $this->objects['logs']->add_log('cache_controller::purge_opcache', 'Purge OPcache cache' );
 
         return true;
@@ -3046,6 +3096,9 @@ class SWCFPC_Cache_Controller
 
             if( $url !== false ) {
                 $this->purge_urls(array($url));
+
+                $this->objects = $this->main_instance->get_objects();
+
                 $this->objects['logs']->add_log('cache_controller::purge_cache_on_elementor_ajax_update', "Purge Cloudflare cache for only post {$post_id} - Fired action: {$current_action}" );
             }
 
@@ -3178,6 +3231,8 @@ class SWCFPC_Cache_Controller
 
         check_ajax_referer( 'ajax-nonce-string', 'security' );
 
+        $this->objects = $this->main_instance->get_objects();
+        
         $return_array = array('status' => 'ok');
         $error = '';
 

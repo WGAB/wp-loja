@@ -1240,7 +1240,6 @@ class SWCFPC_Cloudflare
     function page_cache_test($url, &$error, $test_static=false) {
 
         $this->objects = $this->main_instance->get_objects();
-        $cloudflare_cookie = $this->get_cloudflare_cookie();
 
         $args = array(
             'timeout'    => defined('SWCFPC_CURL_TIMEOUT') ? SWCFPC_CURL_TIMEOUT : 10,
@@ -1250,10 +1249,6 @@ class SWCFPC_Cloudflare
                 'Accept' => 'text/html'
             )
         );
-
-        if( is_object($cloudflare_cookie) )
-            $args['headers']['cookie'] =  "{$cloudflare_cookie->name}={$cloudflare_cookie->value}";
-
 
         $this->objects['logs']->add_log('cloudflare::page_cache_test', "Start test to {$url} with headers ".print_r($args, true) );
 
@@ -1565,60 +1560,6 @@ class SWCFPC_Cloudflare
         return true;
 
     }
-
-
-    function get_cloudflare_cookie($url=false) {
-
-        $cookie_name = '__cfduid';
-
-        $args = array(
-            'timeout'    => defined('SWCFPC_CURL_TIMEOUT') ? SWCFPC_CURL_TIMEOUT : 10,
-            'sslverify'  => false,
-            'user-agent' => 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:59.0) Gecko/20100101 Firefox/59.0',
-            'headers' => array(
-                'Accept' => 'text/html'
-            )
-        );
-
-        $this->objects = $this->main_instance->get_objects();
-
-        if( $url === false )
-            $url = $this->main_instance->home_url();
-
-        $response = wp_remote_get( esc_url_raw( $url ), $args );
-
-        if ( is_wp_error( $response ) ) {
-            $error = __('Connection error: ', 'wp-cloudflare-page-cache' ).$response->get_error_message();
-            $this->objects['logs']->add_log('cloudflare::get_cloudflare_cookie', "Error wp_remote_get: {$error}" );
-            return false;
-        }
-
-        $cookies = wp_remote_retrieve_cookies( $response );
-
-        if ( empty( $cookies ) ) {
-            $this->objects['logs']->add_log('cloudflare::get_cloudflare_cookie', 'No cookies found in response HTTP packet');
-            return false;
-        }
-        else {
-
-            $this->objects['logs']->add_log('cloudflare::get_cloudflare_cookie', 'Cookies found: '.print_r($cookies, true) );
-
-            foreach ($cookies as $cookie) {
-
-                if ($cookie->name === $cookie_name) {
-                    return $cookie;
-                }
-
-            }
-
-        }
-
-        $this->objects['logs']->add_log('cloudflare::get_cloudflare_cookie', "Cookie {$cookie_name} not found" );
-
-        return false;
-
-    }
-
 
     function ajax_test_page_cache() {
 

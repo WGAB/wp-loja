@@ -511,8 +511,7 @@ class SWCFPC_Fallback_Cache
         if( !$this->fallback_cache_ttl_registry )
             return false;
 
-        $this->fallback_cache_ttl_registry = unserialize( $this->fallback_cache_ttl_registry );
-
+        // If the option exists, return true
         return true;
 
     }
@@ -520,7 +519,7 @@ class SWCFPC_Fallback_Cache
 
     function fallback_cache_update_ttl_registry() {
 
-        update_option( 'swcfpc_fc_ttl_registry', serialize( $this->fallback_cache_ttl_registry ) );
+        update_option( 'swcfpc_fc_ttl_registry', $this->fallback_cache_ttl_registry );
 
     }
 

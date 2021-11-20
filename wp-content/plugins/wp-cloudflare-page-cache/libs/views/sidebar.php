@@ -4,7 +4,9 @@ add_thickbox(); ?>
 <div id="swcfpc_sidebar">
 
     <div class="swcfpc_sidebar_widget">
-
+        <p>
+            Share your feedback and help us improve the plugin by answering to this 2 min <a href="https://bit.ly/2Zrj6HJ" target="_blank">survey</a>
+        </p>
         <h3><?php _e( 'Our Products', 'wp-cloudflare-page-cache' ); ?></h3>
 
         <p><?php _e( 'Extend your website perfomance with more free products from our portofolio:', 'wp-cloudflare-page-cache' ); ?></p>

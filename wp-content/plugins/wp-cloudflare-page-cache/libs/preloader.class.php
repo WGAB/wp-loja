@@ -41,10 +41,6 @@ if( class_exists('WP_Background_Process') ) {
                 )
             );
 
-            if( isset($item['cf_cookie']) && is_object($item['cf_cookie']) )
-                $args['headers']['cookie'] =  "{$item['cf_cookie']->name}={$item['cf_cookie']->value}";
-
-
             $response = wp_remote_get( esc_url_raw( $item['url'] ), $args );
 
             //$objects['logs']->add_log( 'preloader::task', 'Response headers for URL '.esc_url_raw( $item['url'] ).': '.print_r( wp_remote_retrieve_headers($response), true) );

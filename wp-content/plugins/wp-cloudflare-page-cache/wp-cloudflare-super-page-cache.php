@@ -3,7 +3,7 @@
  * Plugin Name:  WP Cloudflare Super Page Cache
  * Plugin URI:   https://wordpress.org/plugins/wp-cloudflare-page-cache/
  * Description:  Speed up your website by enabling page caching on a Cloudflare free plans.
- * Version:      4.5.1
+ * Version:      4.5.7
  * Author:       Optimole
  * Author URI:   https://optimole.com/
  * License:      GPLv2 or later
@@ -35,11 +35,14 @@ if( !class_exists('SW_CLOUDFLARE_PAGECACHE') ) {
     if( !defined('SWCFPC_PURGE_CACHE_LOCK_SECONDS') )
         define('SWCFPC_PURGE_CACHE_LOCK_SECONDS', 10);
 
+    if( !defined('SWCFPC_HOME_PAGE_SHOWS_POSTS') )
+        define('SWCFPC_HOME_PAGE_SHOWS_POSTS', true);
+
     class SW_CLOUDFLARE_PAGECACHE {
 
         private $config   = false;
         private $objects  = array();
-        private $version  = '4.5.1';
+        private $version  = '4.5.7';
 
         function __construct() {
 
@@ -244,7 +247,7 @@ if( !class_exists('SW_CLOUDFLARE_PAGECACHE') ) {
             $config['cf_auto_purge_woo_scheduled_sales'] = 1;
             $config['cf_bypass_woo_account_page']        = 1;
 
-            // Swift Performance Lite
+            // Swift Performance (Lite/Pro)
             $config['cf_spl_purge_on_flush_all']           = 1;
             $config['cf_spl_purge_on_flush_single_post']   = 1;
 
@@ -366,7 +369,7 @@ if( !class_exists('SW_CLOUDFLARE_PAGECACHE') ) {
 
         function update_config() {
 
-            update_option( 'swcfpc_config', serialize( $this->config ) );
+            update_option( 'swcfpc_config', $this->config );
 
         }
 
@@ -378,8 +381,7 @@ if( !class_exists('SW_CLOUDFLARE_PAGECACHE') ) {
             if( !$this->config )
                 return false;
 
-            $this->config = unserialize( $this->config );
-
+            // If the option exists, return true
             return true;
 
         }
@@ -929,6 +931,107 @@ if( !class_exists('SW_CLOUDFLARE_PAGECACHE') ) {
 
                     }
 
+                    if( version_compare( $current_version, '4.5.6', '<' ) ) {
+
+                        if ( count($this->objects) == 0 )
+                            $this->include_libs();
+
+                        $this->objects['logs']->add_log('swcfpc::update_plugin', 'Updating to v4.5.6');
+
+                        $this->objects['logs']->add_log('swcfpc::update_plugin', 'Initiating the removal of double serialization for swcfpc_config');
+
+                        // Get the serialized version of the swcfpc_config
+                        $serialized_swcfpc_config = get_option( 'swcfpc_config', false );
+
+                        if( !$serialized_swcfpc_config ) {
+                            
+                            $this->objects['logs']->add_log('swcfpc::update_plugin', 'Serialized swcfpc_config not present');
+
+                        } else {
+
+                            // Unserialize the data to be further stored
+                            if( is_string( $serialized_swcfpc_config ) ) {
+                                $unserialized_swcfpc_config = unserialize( $serialized_swcfpc_config );
+
+                                // Now store the same data again to swcfpc_config,
+                                // But this time we won't serialize the data, instead WP will automatically do it.
+                                update_option( 'swcfpc_config', $unserialized_swcfpc_config );
+                            } else {
+                                $this->objects['logs']->add_log('swcfpc::update_plugin', 'Unfortunately swcfpc_config did not returned a string. So, we can\'t unserialize it.');
+                            }
+
+                        }
+                        
+
+                        $this->objects['logs']->add_log('swcfpc::update_plugin', 'Initiating the removal of double serialization for swcfpc_fc_ttl_registry');
+
+                        // Get the serialized version of the swcfpc_fc_ttl_registry
+                        $serialized_swcfpc_fc_ttl_registry = get_option( 'swcfpc_fc_ttl_registry', false );
+
+                        if( !$serialized_swcfpc_fc_ttl_registry ) {
+
+                            $this->objects['logs']->add_log('swcfpc::update_plugin', 'Serialized swcfpc_fc_ttl_registry not present');
+
+                        } else {
+
+                            if( is_string( $serialized_swcfpc_fc_ttl_registry ) ) {
+                                // Unserialize the data to be further stored
+                                $unserialized_swcfpc_fc_ttl_registry = unserialize( $serialized_swcfpc_fc_ttl_registry );
+    
+                                // Now store the same data again to swcfpc_fc_ttl_registry,
+                                // But this time we won't serialize the data, instead WP will automatically do it.
+                                update_option( 'swcfpc_fc_ttl_registry', serialize( $unserialized_swcfpc_fc_ttl_registry ) );
+                            } else {
+                                $this->objects['logs']->add_log('swcfpc::update_plugin', 'Unfortunately swcfpc_fc_ttl_registry did not returned a string. So, we can\'t unserialize it.');
+                            }
+                        }
+
+                        add_action('shutdown', function() {
+
+                            global $sw_cloudflare_pagecache;
+                        
+                            $objects = $sw_cloudflare_pagecache->get_objects();
+                        
+                            if( $sw_cloudflare_pagecache->get_single_config('cf_woker_enabled', 0) > 0 ) {
+                        
+                                    $error_msg_cf = '';
+                        
+                                    $objects['cloudflare']->disable_page_cache($error_msg_cf);
+                                    $objects['cloudflare']->enable_page_cache($error_msg_cf);
+                        
+                            }
+                        
+                            $objects['logs']->add_log('swcfpc::update_plugin', 'Update to v4.5.6 complete');
+                        
+                        }, PHP_INT_MAX);
+                    }
+
+                    if( version_compare( $current_version, '4.5.7', '<' ) ) {
+                        if ( count($this->objects) == 0 )
+                            $this->include_libs();
+
+                        $this->objects['logs']->add_log('swcfpc::update_plugin', 'Updating to v4.5.7');
+
+                        add_action('shutdown', function() {
+
+                            global $sw_cloudflare_pagecache;
+                        
+                            $objects = $sw_cloudflare_pagecache->get_objects();
+                        
+                            if( $sw_cloudflare_pagecache->get_single_config('cf_woker_enabled', 0) > 0 ) {
+                        
+                                $error_msg_cf = '';
+                    
+                                $objects['cloudflare']->disable_page_cache($error_msg_cf);
+                                $objects['cloudflare']->enable_page_cache($error_msg_cf);
+                        
+                            }
+                        
+                            $objects['logs']->add_log('swcfpc::update_plugin', 'Update to v4.5.7 complete');
+                        
+                        }, PHP_INT_MAX);
+                    }
+
                 }
 
             }
@@ -1185,20 +1288,16 @@ if( !class_exists('SW_CLOUDFLARE_PAGECACHE') ) {
 
         function get_second_level_domain() {
 
-            $matches = array();
-            $url = home_url();
+            $site_hostname = parse_url( home_url(), PHP_URL_HOST );
 
-            // Remove trailing slash
-            if( substr($url, -1) == '/' )
-                $url = substr($url, 0, -1);
-
-            $url = str_replace(array('http://', 'https://'), '', $url);
-            $result = preg_match('#[^.]*\.[^.]{2,3}(?:\.[^.]{2,3})?$#', $url, $matches);
-
-            if( $result == 0 || $result === false || !is_array($matches) || count($matches) == 0 )
+            if( is_null( $site_hostname ) ) {
                 return '';
+            }
 
-            return $matches[0];
+            // get the domain name from the hostname
+            $site_domain = preg_replace('/^www\./', '', $site_hostname);
+
+            return $site_domain;
 
         }
 

@@ -97,7 +97,7 @@ function swcfpc_redirect_to_page(url) {
 
 
 function swcfpc_refresh_page() {
-  location.reload()
+  window.location.reload()
 }
 
 

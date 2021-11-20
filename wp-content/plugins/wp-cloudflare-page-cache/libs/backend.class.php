@@ -24,6 +24,10 @@ class SWCFPC_Backend
 
         add_action( 'init', array($this, 'export_config') );
         add_action( 'admin_enqueue_scripts', array($this, 'load_custom_wp_admin_styles_and_script') );
+
+        // Modify Script Attributes based of the script handle
+        add_filter( 'script_loader_tag', array($this, 'modify_script_attributes'), 10, 2 );
+
         add_action( 'admin_menu', array($this, 'add_admin_menu_pages') );
 
         if( is_admin() && is_user_logged_in() && current_user_can('manage_options') ) {
@@ -44,7 +48,6 @@ class SWCFPC_Backend
         if( $this->main_instance->get_single_config('cf_prefetch_urls_on_hover', 0) > 0 ) {
 
             add_action( 'wp_enqueue_scripts', array($this, 'instantpage_wp_enqueue_scripts') );
-            add_filter( 'script_loader_tag', array($this, 'instantpage_script_loader_tag'), 10, 2 );
             add_action( 'wp_head', array($this, 'instantpage_add_rel_preload') );
 
         }
@@ -83,18 +86,35 @@ class SWCFPC_Backend
         $this->objects = $this->main_instance->get_objects();
 
         $css_version = '1.7.5';
-        $js_version = '1.5.2';
+        $js_version = '1.5.3';
+
+        $screen = ( is_admin() && function_exists('get_current_screen') ) ? get_current_screen() : false;
+
+        // Don't load the scripts for Oxygen Builder visual editor pages
+        $page_action = $_GET['action'] ?? false;
+
+        $on_oxygen_ct_builder_page = $_GET['ct_builder'] ?? false; // If true, it will return "true" as String
+        $on_oxygen_builder_page = ( substr( $page_action, 0, strlen( 'oxy_render'  )) === 'oxy_render' ) ? true : false;
 
         $wp_scripts = wp_scripts();
 
-        wp_register_style('swcfpc_sweetalert_css', SWCFPC_PLUGIN_URL . 'assets/css/sweetalert2.min.css', array(), $css_version);
+        wp_register_style('swcfpc_sweetalert_css', SWCFPC_PLUGIN_URL . 'assets/css/sweetalert2.min.css', array(), '11.0.18');
         wp_register_style('swcfpc_admin_css', SWCFPC_PLUGIN_URL . 'assets/css/style.css', array('swcfpc_sweetalert_css'), $css_version);
 
-        wp_register_script('swcfpc_sweetalert_js', 'https://cdn.jsdelivr.net/npm/sweetalert2@10', array(), $js_version, true);
+        wp_register_script('swcfpc_sweetalert_js', SWCFPC_PLUGIN_URL . 'assets/js/sweetalert2.min.js', array(), '11.0.18', true);
         wp_register_script('swcfpc_admin_js', SWCFPC_PLUGIN_URL . 'assets/js/backend.js', array('swcfpc_sweetalert_js'), $js_version, true);
 
         // Making sure we are not adding the following scripts for AMP endpoints as they are not gonna work anyway and will be striped out by the AMP system
-        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) ) ) {
+        if(
+            !( 
+                ( function_exists('amp_is_request') && ( !is_admin() && amp_is_request() ) ) || 
+                ( function_exists('ampforwp_is_amp_endpoint') && ( !is_admin() && ampforwp_is_amp_endpoint() ) ) ||
+                ( is_object( $screen ) && $screen->base === 'woofunnels_page_wfob' ) ||
+                is_customize_preview() ||
+                filter_var( $on_oxygen_ct_builder_page, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE ) ||
+                $on_oxygen_builder_page
+            )
+        ) {
             $inline_js = 'const swcfpc_ajax_url = "' . admin_url('admin-ajax.php') . '"; ';
             $inline_js .= 'let swcfpc_cache_enabled = ' . $this->main_instance->get_single_config('cf_cache_enabled', 0) . ';';
 
@@ -109,8 +129,19 @@ class SWCFPC_Backend
 
     function autoprefetch_config_wp_enqueue_scripts() {
 
+        /**
+         * Register a blank script to be added in the <head>
+         * As this is a blank script, WP won't actually addd it but we can add our inline script before it
+         * without depening on jQuery. This is to ensure the prefetch scripts get loaded whether a site uses 
+         * jQuery or not.
+         * 
+         * https://wordpress.stackexchange.com/questions/298762/wp-add-inline-script-without-dependency/311279#311279
+         */
+        wp_register_script( 'swcfpc_auto_prefetch_url', '', [], '', true );
+        wp_enqueue_script( 'swcfpc_auto_prefetch_url' );
+
         // Making sure we are not adding the following inline script for AMP endpoints as they are not gonna work anyway and will be striped out by the AMP system
-        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) ) ) :
+        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) || is_customize_preview() ) ) :
 
             ob_start();
 
@@ -153,7 +184,7 @@ class SWCFPC_Backend
             $inline_js = ob_get_contents();
             ob_end_clean();
 
-            wp_add_inline_script('jquery', $inline_js, 'before');
+            wp_add_inline_script('swcfpc_auto_prefetch_url', $inline_js, 'before');
 
         endif;
 
@@ -161,22 +192,36 @@ class SWCFPC_Backend
 
 
     function instantpage_wp_enqueue_scripts() {
-        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) ) ) {
+        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) || is_customize_preview() ) ) {
 
             wp_enqueue_script( 'swcfpc_instantpage', SWCFPC_PLUGIN_URL . 'assets/js/instantpage.min.js', array(), '5.1.0.3', true );
         }
 
     }
 
+    function modify_script_attributes( $tag, $handle ) {
+        // List of scripts added by this plugin
+        $plugin_scripts = [ 
+            'swcfpc_sweetalert_js',
+            'swcfpc_admin_js',
+            'swcfpc_instantpage'
+        ];
 
-    function instantpage_script_loader_tag( $tag, $handle ) {
+        // Check if handle is any of the above scripts made sure we load them as defer
+        if( in_array( $handle, $plugin_scripts ) ) {
 
-        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) ) ) {
+            // If the script is instantpage.js then we also need to make sure we load it as module and not text/javascript
+            if( $handle === 'swcfpc_instantpage' ) {
 
-            if ( $handle === 'swcfpc_instantpage' ) {
-                $tag = str_replace( 'text/javascript', 'module', $tag );
+                // Make sure the tag has type="text/javascript" in it and no other theme or plugin has removed it before us handling it
+                if( ( strpos($tag, 'text/javascript') !== false ) ) {
+                    $tag = str_replace( 'text/javascript', 'module', $tag );
+                } else {
+                    $tag = str_replace( ' src', ' type="module" src', $tag );
+                } 
             }
 
+            return str_replace( ' id', ' defer id', $tag );
         }
 
         return $tag;
@@ -184,8 +229,9 @@ class SWCFPC_Backend
 
     function instantpage_add_rel_preload() {
 
-        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) ) ) {
-            echo '<link rel="preload" href="' . SWCFPC_PLUGIN_URL . 'assets/js/instantpage.min.js" as="script" crossorigin>';
+        if( !( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) || is_customize_preview() ) ) {
+            // @link: https://developers.google.com/web/updates/2017/12/modulepreload#so_is_link_relmodulepreload_just_link_relpreload_for_modules
+            echo '<link rel="modulepreload" href="' . SWCFPC_PLUGIN_URL . 'assets/js/instantpage.min.js">';
         }
     }
 
@@ -210,10 +256,15 @@ class SWCFPC_Backend
 
 
     function add_toolbar_items( $admin_bar ) {
+        $screen = is_admin() ? get_current_screen() : false;
 
         // Make sure we don't add the following admin bar menu as it is not gonna work for AMP endpoints anyway
-        if( ( function_exists('amp_is_request') && amp_is_request() ) || ( function_exists('ampforwp_is_amp_endpoint') && ampforwp_is_amp_endpoint() ) )
-            return;
+        if (
+            ( function_exists('amp_is_request') && ( !is_admin() && amp_is_request() ) ) || 
+            ( function_exists('ampforwp_is_amp_endpoint') && ( !is_admin() && ampforwp_is_amp_endpoint() ) ) ||
+            ( is_object( $screen ) && $screen->base === 'woofunnels_page_wfob' ) ||
+            is_customize_preview()
+        ) return;
 
         $this->objects = $this->main_instance->get_objects();
 
@@ -730,7 +781,7 @@ class SWCFPC_Backend
                 $this->main_instance->set_single_config('cf_auto_purge_woo_scheduled_sales', 0);
             }
 
-            // Swift Performance Lite
+            // Swift Performance (Lite/Pro)
             if( isset($_POST['swcfpc_cf_spl_purge_on_flush_all']) ) {
                 $this->main_instance->set_single_config('cf_spl_purge_on_flush_all', (int) $_POST['swcfpc_cf_spl_purge_on_flush_all']);
             }
