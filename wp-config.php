@@ -20,19 +20,19 @@
 
 // ** Configurações do MySQL - Você pode pegar estas informações com o serviço de hospedagem ** //
 /** O nome do banco de dados do WordPress */
-define( 'DB_NAME', 'teste_db' );
+define( 'DB_NAME', '' );
 
 /** Usuário do banco de dados MySQL */
-define( 'DB_USER', 'admin_local' );
+define( 'DB_USER', '' );
 
 /** Senha do banco de dados MySQL */
-define( 'DB_PASSWORD', 'hsohr32oh4oih2roh3o2h2orh23h' );
+define( 'DB_PASSWORD', '' );
 
 /** Nome do host do MySQL */
-define( 'DB_HOST', 'localhost' );
+define( 'DB_HOST', '' );
 
 /** Charset do banco de dados a ser usado na criação das tabelas. */
-define( 'DB_CHARSET', 'null' );
+define( 'DB_CHARSET', '' );
 
 /** O tipo de Collate do banco de dados. Não altere isso se tiver dúvidas. */
 define( 'DB_COLLATE', '' );
