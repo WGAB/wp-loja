@@ -16,12 +16,12 @@
 
 # Ferramentas em Uso: </br>
 </br>
-<img align="center" alt="html5" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758333-ecb93f5f-2c7c-4d15-900e-071281502711.png">
-<img align="center" alt="css" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758322-a35b7da8-11a0-4200-85a9-957459cb201d.png">
-<img align="center" alt="gimp" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758325-1ecc750e-933b-4f25-b88a-68dd41525843.png">
-<img align="center" alt="git" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758328-420203ca-5fe3-4f5e-a808-b3500fa1ae7d.png">
-<img align="center" alt="php" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758367-9c056631-0527-498d-91cd-78327430935d.png">
-<img align="center" alt="wordPress" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758373-2fac375e-56f1-43c4-9895-d1ddee67b032.png">
+<a href="https://www.w3schools.com/html/"><img align="center" alt="html5" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758333-ecb93f5f-2c7c-4d15-900e-071281502711.png"></a>
+<a href="https://www.w3schools.com/css/"><img align="center" alt="css" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758322-a35b7da8-11a0-4200-85a9-957459cb201d.png"></a>
+<a href="https://www.gimp.org/"><img align="center" alt="gimp" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758325-1ecc750e-933b-4f25-b88a-68dd41525843.png"></a>
+<a href="https://git-scm.com/"><img align="center" alt="git" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758328-420203ca-5fe3-4f5e-a808-b3500fa1ae7d.png"></a>
+<a href="https://www.php.net/"><img align="center" alt="php" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758367-9c056631-0527-498d-91cd-78327430935d.png"></a>
+<a href="https://br.wordpress.org/"><img align="center" alt="wordPress" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758373-2fac375e-56f1-43c4-9895-d1ddee67b032.png"></a>
 </div>
 
 <div>
