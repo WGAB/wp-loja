@@ -22,6 +22,7 @@
 <a href="https://git-scm.com/" target="_blank"><img align="center" alt="git" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758328-420203ca-5fe3-4f5e-a808-b3500fa1ae7d.png"></a>
 <a href="https://www.php.net/" target="_blank"><img align="center" alt="php" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758367-9c056631-0527-498d-91cd-78327430935d.png"></a>
 <a href="https://br.wordpress.org/" target="_blank"><img align="center" alt="wordPress" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758373-2fac375e-56f1-43c4-9895-d1ddee67b032.png"></a>
+<a href="https://yum.oracle.com/oracle-linux-isos.html" target="_blank"><img align="center" alt="Linux" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144761149-e6476924-6c56-4a90-a252-8778ece7dafa.png"></a>
 </div>
 
 <div>
@@ -29,13 +30,19 @@
   <em>Console de Gerenciamento do Amazon AWS </br>
   Ubuntu / Bash Linux / MySql </br>
   Instâncias EC2 </br>
-  (Uma para o Servidor de Aplicação e outra para o Servidor do Banco de Dados ) </br>
+  (Uma para o Servidor de Aplicação e outra para o Servidor do Banco de Dados) </br>
   WordPress </br>
   Programas Diversos de Edição de Imagem </br>
   Plugins e Scripts Personalizados, e de Terceiros </br></em>
 </div>
 
 </br>
+<div>
+  <h2>Minhas redes sociais.</h2>
+  <a href="https://www.linkedin.com/in/winston-bezerra-820817141/" target="_blank"><img align="center" alt="Linkedin" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144761134-bdd3a3e0-7d3b-461e-a055-737819fe9690.png"></a>
+  <a href="https://www.instagram.com/winstonbezerra1981/" target="_blank"><img align="center" alt="Linux" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144761399-e01a776b-fcb5-4eba-b384-a77bf5567534.png"></a>
+</div>
+
 </body>
 
 
