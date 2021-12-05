@@ -12,24 +12,28 @@
 </br>
 # Ferramentas em Uso: </br>
 
-<img align="center" alt="mysql" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144757868-80366447-e756-466e-8408-10e125595483.png">
-![mysql-plain-wordmark](https://user-images.githubusercontent.com/39489517/144757868-80366447-e756-466e-8408-10e125595483.png)
-
-</br>
-Console de Gerenciamento do Amazon AWS </br>
-Ubuntu / Bash Linux / MySql </br>
-Instâncias EC2 </br>
-(Uma para o Servidor de Aplicação e outra para o Servidor do Banco de Dados ) </br>
-WordPress </br>
-Programas Diversos de Edição de Imagem </br>
-Plugins e Scripts Personalizados, e de Terceiros </br>
+<img align="center" alt="html5" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758333-ecb93f5f-2c7c-4d15-900e-071281502711.png">
+<img align="center" alt="css" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758322-a35b7da8-11a0-4200-85a9-957459cb201d.png">
+<img align="center" alt="gimp" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758325-1ecc750e-933b-4f25-b88a-68dd41525843.png">
+<img align="center" alt="git" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758328-420203ca-5fe3-4f5e-a808-b3500fa1ae7d.png">
+<img align="center" alt="php" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758367-9c056631-0527-498d-91cd-78327430935d.png">
+<img align="center" alt="wordPress" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144758373-2fac375e-56f1-43c4-9895-d1ddee67b032.png">
 </div>
-![loja-insightrn](https://user-images.githubusercontent.com/39489517/144292840-adaa2554-9e28-40f1-a56b-285f1b19fe9b.png)
 
-
-
+<div>
 </br>
-
+  Console de Gerenciamento do Amazon AWS </br>
+  Ubuntu / Bash Linux / MySql </br>
+  Instâncias EC2 </br>
+  (Uma para o Servidor de Aplicação e outra para o Servidor do Banco de Dados ) </br>
+  WordPress </br>
+  Programas Diversos de Edição de Imagem </br>
+  Plugins e Scripts Personalizados, e de Terceiros </br>
+</div>
+<div>
+  <img align="center" alt="wp-loja" height="800" width="800" src="https://user-images.githubusercontent.com/39489517/144292840-adaa2554-9e28-40f1-a56b-285f1b19fe9b.png">
+</br>
+</div>
 
 
 
