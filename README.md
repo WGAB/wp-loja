@@ -12,7 +12,7 @@
 ></p><span style = font-family: 'Fuzzy Bubbles', cursive; font-size:"4em";> </br>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Esse é um esboço inicial de uma loja completa em Word Press utilizando versionamento no Git, e com a utilização de uma base de dados (MySql - database) independentemente instalada na Cloud da Amazon AWS.&nbsp&nbsp&nbsp&nbsp&nbsp Então no caso são 2 instâncias? </br></br>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspComo são diversos serviços necessários, então isso extende como dependências, faculdades obrigatórias, digo: disciplina e um pouco de discernimento. Estão no escopo, EC2 Instances, FireWall Polices, VPC Networks, e a lógica de relacionamento por trás disso.</br></br>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Desses, depois, entrarei na parte sobre DNS, resolução, configuração de nomes de domínios, e o que há mais pra fazer. Há, mas sem esquecer da lógica de programação relacionada com o JavasCript, HTML, os CSSs da vida, os frameworks que os cercam... no mas é isso mesmo, vida que segue!</span></p>
 
 <div style="display: inline_block">
-  </br><h2>Link Provisório do Projeto Rodando (<a href="https://ec2-54-233-110-218.sa-east-1.compute.amazonaws.com/" target="_blank">lojainsightrn.tk</a>)</h2></br>
+  </br><h2>Link Provisório do Projeto Rodando (<a href="https://ec2-54-233-110-218.sa-east-1.compute.amazonaws.com/" target="_blank">lojainsight.link</a>)</h2></br>
 
 # Ferramentas em Uso: </br>
 </br>
@@ -40,7 +40,7 @@
 <div>
   <h2>Minhas redes sociais.</h2>
   <a href="https://www.linkedin.com/in/winston-bezerra-820817141/" target="_blank"><img align="center" alt="Linkedin" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144761134-bdd3a3e0-7d3b-461e-a055-737819fe9690.png"></a>
-  <a href="https://www.instagram.com/winstonbezerra1981/" target="_blank"><img align="center" alt="Linux" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144761399-e01a776b-fcb5-4eba-b384-a77bf5567534.png"></a>
+  <a href="https://www.instagram.com/winstonbezerra/" target="_blank"><img align="center" alt="Linux" height="64" width="64" src="https://user-images.githubusercontent.com/39489517/144761399-e01a776b-fcb5-4eba-b384-a77bf5567534.png"></a>
 </div>
 
 </body>
